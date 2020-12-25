@@ -185,38 +185,43 @@ def modify(nac,accid): # to modify/ update account information in the file
     f.close()#closes file
 
 def show(name):# displays details of all accounts held by user
-    f=open("accounts.dat","rb+")
-    #this value is used to calculate interest (both on deposited money and loans held) and update the amount accordingly in the file
-    t=int(input("How long has it been since your last visit?(Enter your answer in months) "))
-    print("\n")
-    print("Accounts:\n")
-    a=0
     try:
-        while True:#searching for accounts held by user
-            ac=pickle.load(f)
-            try:
-                if (ac.account_holder==name):
-                    a+=1
-                    if not ac.accountid.startswith("j"):
-                        #updating amount according to interest
-                        ac.amount_held=ac.increment(t)
-                        modify(ac,ac.accountid)
-                        #displaying account details
-                        ac.display()
-                        print("\n")
-                    else:#separate case for joint accounts to check if user is a primary account holder or a secondary account holder
-                        if (ac.prim_acc_holder)==name or (ac.sec_acc_holder)==name:
+        f=open("accounts.dat","rb+")
+        #this value is used to calculate interest (both on deposited money and loans held) and update the amount accordingly in the file
+        t=int(input("How long has it been since your last visit?(Enter your answer in months) "))
+        print("\n")
+        print("Accounts:\n")
+        a=0
+        try:
+            while True:#searching for accounts held by user
+                ac=pickle.load(f)
+                try:
+                    if (ac.account_holder==name):
+                        a+=1
+                        if not ac.accountid.startswith("j"):
+                            #updating amount according to interest
                             ac.amount_held=ac.increment(t)
                             modify(ac,ac.accountid)
+                            #displaying account details
                             ac.display()
                             print("\n")
-            except:
-                pass
+                        else:#separate case for joint accounts to check if user is a primary account holder or a secondary account holder
+                            if (ac.prim_acc_holder)==name or (ac.sec_acc_holder)==name:
+                                ac.amount_held=ac.increment(t)
+                                modify(ac,ac.accountid)
+                                ac.display()
+                                print("\n")
+                except:
+                    pass
 
-    except (EOFError,pickle.UnpicklingError):#handles error when end of file is reached and UnpicklingError
-        pass
-    if a==0:
-        print("NA\n")
+        except (EOFError,pickle.UnpicklingError):#handles error when end of file is reached and UnpicklingError
+            pass
+        if a==0:
+            print("NA\n")
+        f.close()
+    except:
+        print("Accounts:")
+        print("N/A\n")
     print("Loans:\n")
     try:
         file=open("loan.dat","rb+")
@@ -239,7 +244,6 @@ def show(name):# displays details of all accounts held by user
         file.close()
     except:
         print("N/A\n")
-    f.close()
 
 def close_account(accid): # to close an account - it does this by deleting the appropriate object from the file
     f=open("accounts.dat","rb+")#opens file with data of all accounts
@@ -528,4 +532,3 @@ def main():
         exit()
 
 main()#calling the main function
-
