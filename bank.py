@@ -452,7 +452,9 @@ def transaction(ac,accid,option):#to carry out transactions (deposit/withdraw) o
         print("Deposit successful.\nCurrent Balance:",ac.amount_held)
     elif (option==2):
         ac.amount_held=ac.withdraw()
-        if (ac.amount_held==0):
+        if ac.amount_held is False:
+            pass
+        elif (ac.amount_held==0):
             print("Withdraw successful.\nCurrent Balance:",ac.amount_held)
             modify(ac,accid)
         elif(ac.amount_held):
@@ -526,3 +528,4 @@ def main():
         exit()
 
 main()#calling the main function
+
