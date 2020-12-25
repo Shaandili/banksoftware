@@ -122,7 +122,10 @@ def loan():#Goes through process to take out loan:
     try:
         while True:
             ac=pickle.load(f)
-            if(ac.account_holder==name):
+            if (ac.accountid.startswith("j")):
+                if (ac.prim_acc_holder==name) or (ac.sec_acc_holder==name):
+                    debt.credit_score+=1
+            elif(ac.account_holder==name):
                 debt.credit_score+=1
     except (EOFError,pickle.UnpicklingError):
         pass
@@ -278,7 +281,7 @@ def create_account(x): # to create an account
 def cheque():# to deposit a cheque
     yaccid=input("Enter account ID of payee: ")#accept user's account ID
     oaccid=input("Enter account ID of payer: ")#enter account id of person that wrote the cheque
-    if oaccid.accountid.startswith("CD"):
+    if oaccid.startswith("CD"):
         print("Cheques from CD accounts cannot be deposited.")
         return None
     f=open("accounts.dat","rb+")
@@ -311,7 +314,7 @@ def cheque():# to deposit a cheque
 
 def transfer():#to transfer money to another account
     yaccid=input("Enter your account ID: ")#enter user's account id
-    if yaccid.accountid.startswith("CD"):
+    if yaccid.startswith("CD"):
         print("Tranfers cannot be made from CD accounts.")
         return None
     oaccid=input("Enter account ID that money has to be transfered to: ")#enter account id of person user wants to transfer money to
@@ -532,3 +535,5 @@ def main():
         exit()
 
 main()#calling the main function
+
+
