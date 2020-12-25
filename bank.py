@@ -14,7 +14,7 @@ class savings_account:#class that generates objects that represent savings accou
         self.amount_held+=x
         return self.amount_held
     def withdraw(self):#withdraws money from account, prints error message if there isn't enough money in the account
-        x=int(input("Enter amount: "))
+        x=int(input("Enter Amount: "))
         if(x>self.amount_held):
             print("Denied, not enough money in account.")
             return False
@@ -100,7 +100,10 @@ class loanprofile:# Creates objects that are stored in a file to help record loa
 def loan():#Goes through process to take out loan:
     needtowrite=False
     name=input("Enter Name: ")#Asks for name to check whether the user has already taken out a loan, and to make a new "loan account" if they haven't
-    file=open("loan.dat","rb+")#opens file with "loan" accounts
+    try:
+        file=open("loan.dat","rb+")#opens file with "loan" account"
+    except:
+        file=open("loan.dat","wb+")
     flag=True
     try:
         while True:
@@ -183,7 +186,6 @@ def modify(nac,accid): # to modify/ update account information in the file
 
 def show(name):# displays details of all accounts held by user
     f=open("accounts.dat","rb+")
-    file=open("loan.dat","ab+")
     #this value is used to calculate interest (both on deposited money and loans held) and update the amount accordingly in the file
     t=int(input("How long has it been since your last visit?(Enter your answer in months) "))
     print("\n")
@@ -216,25 +218,28 @@ def show(name):# displays details of all accounts held by user
     if a==0:
         print("NA\n")
     print("Loans:\n")
-    l=0
     try:
-        while True:
-            loanobj=pickle.load(file)
-            pos=file.tell()
-            if loanobj.name==name:
-                l+=1
-                loanobj.debt=loanobj.increment(t)#incrementing amount owed by user to bank
-                loanobj.display()
-                print("\n")
-    except EOFError:#handles error when end of file is reached
-        pass
-    if l==0:
-        print("NA\n")
-    else:
-        file.seek(pos)
-        pickle.dump(loanobj,file)
+        file=open("loan.dat","rb+")
+        l=0
+        try:
+            while True:
+                pos=file.tell()
+                loanobj=pickle.load(file)
+                if loanobj.name==name:
+                    l+=1
+                    loanobj.debt=loanobj.increment(t)#incrementing amount owed by user to bank
+                    loanobj.display()
+                    file.seek(pos)
+                    pickle.dump(loanobj,file)
+                    print("\n")
+        except EOFError:#handles error when end of file is reached
+            pass
+        if l==0:
+            print("NA\n")
+        file.close()
+    except:
+        print("N/A\n")
     f.close()
-    file.close()
 
 def close_account(accid): # to close an account - it does this by deleting the appropriate object from the file
     f=open("accounts.dat","rb+")#opens file with data of all accounts
@@ -339,16 +344,16 @@ def transfer():#to transfer money to another account
 
 def payloan():#to pay back loans
     accno=input("Enter account ID: ")#choose account
-    file=open("accounts.dat","ab+")#opens file with account data
-    f=open("loan.dat","ab+")#opens file with "loan" accounts
+    file=open("accounts.dat","rb+")#opens file with account data
+    f=open("loan.dat","rb+")#opens file with "loan" accounts
     try:
         flag=True
         while True:
-            a=pickle.load(file)#reads object from file
             pos1=file.tell()#position of account object
+            a=pickle.load(file)#reads object from file
             if (a.accountid)==accno:
                     flag=False
-                    if not (a.accountid.startwith(j)):
+                    if not (a.accountid.startswith("j")):
                         ac=a
                         name=ac.account_holder
                         ac.display()
@@ -373,8 +378,8 @@ def payloan():#to pay back loans
     try:
         flag2=True
         while True:
-            d=pickle.load(f)#reads a loan object from the file
             pos2=f.tell()#position of loan object
+            d=pickle.load(f)#reads a loan object from the file
             if(d.name)==name:
                 flag2=False
                 loanobj=d
@@ -384,18 +389,23 @@ def payloan():#to pay back loans
     if flag2:
         print("No loan has been taken out in this name.")
         return None
-    amount=int(input("Enter Amount: "))#specify amount to be paid to bank
-    #to take care of accidental overpaying by user
-    if amount>loanobj.debt:
-        amount=loanobj.debt
     #subtract amount from debt, withdraw from accounts
+    temp=ac.amount_held
     ac.amount_held=ac.withdraw()
-    if ac.amount_held:
-        loanobj.debt-=amount
+    if ac.amount_held==0:
+        modify(ac,ac.accountid)
+        loanobj.debt-=(temp-ac.amount_held)
         file.seek(pos1)
-        pickle.dump(ac)
+        pickle.dump(ac,file)
         f.seek(pos2)
-        pickle.dump(loanobj)
+        pickle.dump(loanobj,f)
+    if ac.amount_held:
+        modify(ac,ac.accountid)
+        loanobj.debt-=(temp-ac.amount_held)
+        file.seek(pos1)
+        pickle.dump(ac,file)
+        f.seek(pos2)
+        pickle.dump(loanobj,f)
     file.close()
     f.close()
 
@@ -426,7 +436,7 @@ def creation():#function creates a menu that displays the different types of acc
                 create_account(x)
                 break
 
-def continuation():#to ask the user if they wish to continue operations on the account
+def continuation():#to ask the user if they wish to continue operations in the software
     y=input("Do you wish to continue?(yes/no)")
     if (y=="yes"):
         main()
